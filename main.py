@@ -1,3 +1,4 @@
+import base64
 import math
 import drawsvg as dw
 
@@ -32,6 +33,11 @@ d = dw.Drawing(W, H, origin=(0, 0))
 clip = dw.ClipPath()
 clip.append(dw.Rectangle(0, 0, W, H, rx=R, ry=R))
 g = dw.Group(clip_path=clip)
+
+def embed_png(path):
+    with open(path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
 
 def dovetail_pin(x, y, dx):
     p = dw.Path(**pin_style)
@@ -105,7 +111,8 @@ g.append(dw.Rectangle(
     **cut_style
 ))
 
-img = dw.Image(11, 18, 30, 30, "logo.png")
+png_data = embed_png("logo.png")
+img = dw.Image(11, 18, 30, 30, png_data)
 d.append(img)
 
 d.append(g)
