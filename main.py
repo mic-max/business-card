@@ -9,6 +9,7 @@ class CardConfig:
     height: float = 50.8
     radius: float = 1.5
     margin: float = 10.0
+    output: str = 'out.svg'
 
 @dataclass
 class DovetailConfig:
@@ -35,6 +36,7 @@ class LogoConfig:
     x: float = 10.5
     y: float = 18.4
     scale: float = 0.23
+    path: str = 'logo.svg'
 
 @dataclass
 class LaserConfig:
@@ -98,6 +100,7 @@ def make_card(
         logo=LogoConfig(),
         laser=LaserConfig()
     ):
+    # Draw card with half-blind dovetail borders
     d = dw.Drawing(card.width, card.height, origin=(0, 0))
     g = draw_card_outline(card, laser)
     draw_dovetails(g, card, dovetail, laser)
@@ -107,22 +110,22 @@ def make_card(
     d.append(dw.Text('Maxwell Made', text.title_size, x, text.title_y, text_anchor='end', font_family=text.font, **laser.etch_style, style='font-feature-settings: \'smcp\';'))
     d.append(dw.Text('.ca', text.domain_size, x, y=text.domain_y, text_anchor='end', font_family=text.font, **laser.etch_style))
 
+    # Add information lines
     lines = [
         'Michael Maxwell',
         'Furniture Maker',
         'Ottawa, ON',
         '613 324 3802',
     ]
-
     for i, line in enumerate(reversed(lines)):
         y = card.height - text.bottom_margin - i * text.line_height
         d.append(dw.Text(line, text.info_size, x, y, text_anchor='end', font_family=text.font, **laser.etch_style, style='font-feature-settings: \'smcp\';'))
 
+    # Add logo
     group = dw.Group(transform=f'translate({logo.x}, {logo.y}) scale({logo.scale})')
-    cut_paths = load_paths_data('logo.svg', {'top', 'left', 'right', 'botleft', 'botright', 'stem'})
-    etch_paths = load_paths_data('logo.svg', {'m1', 'm2'})
+    cut_paths = load_paths_data(logo.path, {'top', 'left', 'right', 'botleft', 'botright', 'stem'})
+    etch_paths = load_paths_data(logo.path, {'m1', 'm2'})
 
-    group.append(dw.Circle(70.85919, 73.611367, 40-1.6, stroke_width='1mm', stroke=laser.etch_style['fill'], fill='none'))
     for path_data in cut_paths.values():
         p = dw.Path(path_data, **laser.cut_style)
         group.append(p)
@@ -130,11 +133,14 @@ def make_card(
         p = dw.Path(path_data, **laser.cut_style)
         group.append(dw.Path(etch, **laser.etch_style))
 
+    # Draw circle
+    group.append(dw.Circle(70.85919, 73.611367, 40-1.6, stroke_width='1mm', stroke=laser.etch_style['fill'], fill='none'))
+
     d.append(group)
 
     # Compile SVG and write to disk
     d.append(g)
-    d.save_svg('out.svg')
+    d.save_svg(card.output)
 
 # Main
 if __name__ == '__main__':
