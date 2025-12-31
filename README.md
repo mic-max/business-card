@@ -11,4 +11,3 @@
 
 1. Load `out.svg`
 1. Open print settings
-1. TODO
